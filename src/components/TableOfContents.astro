@@ -1,0 +1,75 @@
+---
+interface Heading {
+	depth: number; // 2 or 3
+	text: string;
+	slug: string;
+}
+
+interface Props {
+	headings: Heading[];
+}
+
+const { headings } = Astro.props;
+
+if (headings.length === 0) {
+	return null;
+}
+---
+
+<aside class="toc">
+	<nav>
+		<ul class="toc-list">
+			{
+				headings.map((heading) => (
+					<li class={`toc-item toc-depth-${heading.depth}`}>
+						<a href={`#${heading.slug}`}>{heading.text}</a>
+					</li>
+				))
+			}
+		</ul>
+	</nav>
+</aside>
+
+<style>
+	.toc {
+		width: 200px;
+		padding: 0;
+		position: sticky;
+		top: 2em;
+		align-self: flex-start;
+		font-size: 0.85em;
+	}
+	.toc-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.toc-item {
+		margin-bottom: 0.4em;
+	}
+	.toc-item a {
+		text-decoration: none;
+		color: rgb(var(--gray-dark));
+		display: block;
+		padding: 0.2em 0;
+		transition: color 0.2s;
+	}
+	.toc-item a:hover {
+		color: rgb(var(--accent));
+	}
+	.toc-depth-2 {
+		padding-left: 0;
+	}
+	.toc-depth-3 {
+		padding-left: 1em;
+	}
+	@media (max-width: 720px) {
+		.toc {
+			position: static;
+			width: 100%;
+			padding: 1em 0;
+			margin-bottom: 1em;
+		}
+	}
+</style>
+

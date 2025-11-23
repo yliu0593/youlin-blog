@@ -1,0 +1,76 @@
+---
+interface Props {
+	allTags: string[];
+	activeTag: string | null;
+}
+
+const { allTags, activeTag } = Astro.props;
+---
+
+<aside class="tag-sidebar">
+	<h3>标签</h3>
+	<ul class="tag-list">
+		<li>
+			<a
+				href="/blog"
+				class={activeTag === null ? 'active' : ''}
+			>
+				全部
+			</a>
+		</li>
+		{
+			allTags.map((tag) => (
+				<li>
+					<a
+						href={`/blog?tag=${encodeURIComponent(tag)}`}
+						class={activeTag === tag ? 'active' : ''}
+					>
+						{tag}
+					</a>
+				</li>
+			))
+		}
+	</ul>
+</aside>
+
+<style>
+	.tag-sidebar {
+		width: 200px;
+		padding: 1em;
+	}
+	.tag-sidebar h3 {
+		margin: 0 0 1em 0;
+		font-size: 1em;
+		font-weight: 600;
+	}
+	.tag-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.tag-list li {
+		margin-bottom: 0.5em;
+	}
+	.tag-list a {
+		display: block;
+		padding: 0.5em;
+		text-decoration: none;
+		color: rgb(var(--gray-dark));
+		border-radius: 4px;
+		transition: background-color 0.2s;
+	}
+	.tag-list a:hover {
+		background-color: rgba(var(--accent), 0.1);
+	}
+	.tag-list a.active {
+		background-color: rgba(var(--accent), 0.2);
+		color: rgb(var(--accent));
+		font-weight: 600;
+	}
+	@media (max-width: 720px) {
+		.tag-sidebar {
+			display: none;
+		}
+	}
+</style>
+

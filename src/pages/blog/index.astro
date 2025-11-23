@@ -1,87 +1,97 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
+import TagSidebar from '../../components/TagSidebar.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+const allPosts = await getCollection('blog');
+const activeTag = Astro.url.searchParams.get('tag');
+
+// Get all unique tags, sorted
+const allTags = Array.from(
+	new Set(allPosts.flatMap((post) => post.data.tags || []))
+).sort();
+
+// Filter posts by tag if activeTag is set
+const posts = (activeTag
+	? allPosts.filter((post) => post.data.tags?.includes(activeTag))
+	: allPosts
+).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="zh">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 		<style>
 			main {
-				width: 960px;
+				width: 1200px;
+				max-width: calc(100% - 2em);
+				margin: 0 auto;
+				padding: 2em 1em;
 			}
-			ul {
+			.blog-layout {
 				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
+				gap: 2em;
+				align-items: flex-start;
+			}
+			.blog-content {
+				flex: 1;
+				min-width: 0;
+			}
+			.post-list {
+				list-style: none;
 				padding: 0;
+				margin: 2em 0;
 			}
-			ul li {
-				width: calc(50% - 1rem);
+			.post-item {
+				margin-bottom: 2em;
+				padding-bottom: 2em;
+				border-bottom: 1px solid rgba(var(--gray), 0.2);
 			}
-			ul li * {
+			.post-item:last-child {
+				border-bottom: none;
+			}
+			.post-title {
+				margin: 0 0 0.5em 0;
+				font-size: 1.5em;
+			}
+			.post-title a {
 				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
 				color: rgb(var(--black));
-				line-height: 1;
 			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
+			.post-title a:hover {
 				color: rgb(var(--accent));
 			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
+			.post-meta {
+				color: rgb(var(--gray));
+				font-size: 0.9em;
+				margin-bottom: 0.5em;
+			}
+			.post-summary {
+				margin: 0.5em 0;
+				color: rgb(var(--gray-dark));
+			}
+			.post-tags {
+				display: flex;
+				gap: 0.5em;
+				margin-top: 0.5em;
+				flex-wrap: wrap;
+			}
+			.tag {
+				display: inline-block;
+				padding: 0.2em 0.6em;
+				background: rgba(var(--accent), 0.1);
+				color: rgb(var(--accent));
+				border-radius: 4px;
+				font-size: 0.85em;
 			}
 			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
+				.blog-layout {
+					flex-direction: column;
 				}
 			}
 		</style>
@@ -89,25 +99,48 @@ const posts = (await getCollection('blog')).sort(
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
+			<div class="blog-layout">
+				<TagSidebar allTags={allTags} activeTag={activeTag} />
+				<div class="blog-content">
+					<h1>博客文章</h1>
 					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
+						posts.length === 0 ? (
+							<p>没有找到文章。</p>
+						) : (
+							<ul class="post-list">
+								{
+									posts.map((post) => (
+										<li class="post-item">
+											<h2 class="post-title">
+												<a href={`/blog/${post.id}`}>{post.data.title}</a>
+											</h2>
+											<div class="post-meta">
+												<FormattedDate date={post.data.date} />
+											</div>
+											{
+												post.data.summary && (
+													<p class="post-summary">{post.data.summary}</p>
+												)
+											}
+											{
+												post.data.tags && post.data.tags.length > 0 && (
+													<div class="post-tags">
+														{
+															post.data.tags.map((tag) => (
+																<span class="tag">{tag}</span>
+															))
+														}
+													</div>
+												)
+											}
+										</li>
+									))
+								}
+							</ul>
+						)
 					}
-				</ul>
-			</section>
+				</div>
+			</div>
 		</main>
 		<Footer />
 	</body>
