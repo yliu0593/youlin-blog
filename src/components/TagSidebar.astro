@@ -2,9 +2,10 @@
 interface Props {
 	allTags: string[];
 	activeTag: string | null;
+	basePath?: string;
 }
 
-const { allTags, activeTag } = Astro.props;
+const { allTags, activeTag, basePath = '/blog' } = Astro.props;
 ---
 
 <aside class="tag-sidebar meta-card">
@@ -12,7 +13,7 @@ const { allTags, activeTag } = Astro.props;
 	<ul class="tag-list">
 		<li>
 			<a
-				href="/blog"
+				href={basePath}
 				class:list={['tag-chip', { active: activeTag === null }]}
 			>
 				全部
@@ -21,7 +22,7 @@ const { allTags, activeTag } = Astro.props;
 		{
 			allTags.map((tag) => (
 				<li>
-					<a href={`/blog?tag=${encodeURIComponent(tag)}`} class:list={['tag-chip', { active: activeTag === tag }]}>
+					<a href={`${basePath}?tag=${encodeURIComponent(tag)}`} class:list={['tag-chip', { active: activeTag === tag }]}>
 						{tag}
 					</a>
 				</li>

@@ -1,18 +1,29 @@
 ---
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
+import yonaAvatar from '../assets/yona-avatar.png';
 ---
 ---
 
 <header class="site-nav">
 	<p class="site-nav__eyebrow">个人博客</p>
+	<div class="site-nav__avatar">
+		<img
+			src={yonaAvatar.src}
+			width={120}
+			height={120}
+			alt="yona avatar"
+			loading="lazy"
+			decoding="async"
+		/>
+	</div>
 	<a class="site-nav__title" href="/">{SITE_TITLE}</a>
 	<p class="site-nav__description">
 		{SITE_DESCRIPTION}
 	</p>
 	<nav class="site-nav__links">
-		<HeaderLink href="/" class="site-nav__link">首页</HeaderLink>
-		<HeaderLink href="/blog" class="site-nav__link">文章</HeaderLink>
+		<HeaderLink href="/" class="site-nav__link">文章</HeaderLink>
+		<HeaderLink href="/blog" class="site-nav__link">归档</HeaderLink>
 		<HeaderLink href="/about" class="site-nav__link">关于</HeaderLink>
 		<HeaderLink href="/now" class="site-nav__link">Now</HeaderLink>
 	</nav>
@@ -37,11 +48,29 @@ import HeaderLink from './HeaderLink.astro';
 		color: rgba(var(--gray-dark), 0.6);
 	}
 
+	.site-nav__avatar {
+		width: 96px;
+		height: 96px;
+		border-radius: 999px;
+		margin: 0.75rem auto 0.75rem;
+		overflow: hidden;
+		border: 3px solid rgba(255, 255, 255, 0.9);
+		box-shadow: 0 10px 30px rgba(var(--black), 0.12);
+	}
+
+	.site-nav__avatar img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
 	.site-nav__title {
 		display: block;
-		font-size: 1.8rem;
+		text-align: center;
+		font-size: 1.9rem;
 		font-weight: 700;
-		margin: 0.2rem 0 0.5rem;
+		margin: 0 0 0.65rem;
 		color: rgb(var(--black));
 		text-decoration: none;
 	}
@@ -51,6 +80,7 @@ import HeaderLink from './HeaderLink.astro';
 		color: rgba(var(--gray-dark), 0.85);
 		font-size: 0.95rem;
 		line-height: 1.5;
+		text-align: center;
 	}
 
 	.site-nav__links {

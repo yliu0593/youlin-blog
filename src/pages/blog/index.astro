@@ -5,6 +5,9 @@ import FormattedDate from '../../components/FormattedDate.astro';
 import SiteLayout from '../../components/SiteLayout.astro';
 import TagSidebar from '../../components/TagSidebar.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { getWordCount, getReadingTime } from '../../utils/postStats';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 export const prerender = false;
 
@@ -15,117 +18,232 @@ const allTags = Array.from(
 	new Set(allPosts.flatMap((post) => post.data.tags || []))
 ).sort();
 
-const posts = (activeTag
+// Filter posts by tag if active
+const filteredPosts = activeTag
 	? allPosts.filter((post) => post.data.tags?.includes(activeTag))
-	: allPosts
-).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+	: allPosts;
+
+// Group posts by year and month
+type PostWithStats = typeof allPosts[0] & {
+	wordCount: number;
+	readingTime: number;
+};
+
+const postsWithStats: PostWithStats[] = await Promise.all(
+	filteredPosts.map(async (post) => {
+		let body = '';
+		// Try to read the file directly using the id (which is the file path relative to content/blog)
+		// Try .md first, then .mdx
+		for (const ext of ['.md', '.mdx']) {
+			try {
+				const filePath = join(process.cwd(), 'src/content/blog', `${post.id}${ext}`);
+				body = await readFile(filePath, 'utf-8');
+				break; // Success, exit loop
+			} catch {
+				// Continue to next extension
+			}
+		}
+		const wordCount = getWordCount(body);
+		const readingTime = getReadingTime(wordCount);
+		return { ...post, wordCount, readingTime };
+	})
+);
+
+// Group by year and month
+type YearMonthGroup = {
+	year: number;
+	months: {
+		month: number;
+		monthName: string;
+		posts: PostWithStats[];
+	}[];
+};
+
+const groupedByYearMonth: YearMonthGroup[] = [];
+
+// Month names in Chinese
+const monthNames = [
+	'January', 'February', 'March', 'April', 'May', 'June',
+	'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const monthNamesZh = [
+	'一月', '二月', '三月', '四月', '五月', '六月',
+	'七月', '八月', '九月', '十月', '十一月', '十二月'
+];
+
+// Sort posts by date (newest first)
+postsWithStats.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Group posts
+const yearMap = new Map<number, Map<number, PostWithStats[]>>();
+
+for (const post of postsWithStats) {
+	const date = post.data.date;
+	const year = date.getFullYear();
+	const month = date.getMonth(); // 0-11
+
+	if (!yearMap.has(year)) {
+		yearMap.set(year, new Map());
+	}
+	const monthMap = yearMap.get(year)!;
+	
+	if (!monthMap.has(month)) {
+		monthMap.set(month, []);
+	}
+	monthMap.get(month)!.push(post);
+}
+
+// Convert to array structure
+for (const [year, monthMap] of Array.from(yearMap.entries()).sort((a, b) => b[0] - a[0])) {
+	const months = Array.from(monthMap.entries())
+		.sort((a, b) => b[0] - a[0]) // Sort months descending (newest first)
+		.map(([month, posts]) => ({
+			month,
+			monthName: monthNamesZh[month],
+			posts: posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+		}));
+	
+	groupedByYearMonth.push({ year, months });
+}
+
+const totalPosts = postsWithStats.length;
 ---
 
 <!doctype html>
 <html lang="zh">
 	<head>
-		<BaseHead title={`${SITE_TITLE} | 博客`} description={SITE_DESCRIPTION} />
+		<BaseHead title={`${SITE_TITLE} | 归档`} description={SITE_DESCRIPTION} />
 		<style>
-			.post-list {
+			.archive-header {
+				margin-bottom: 2rem;
+			}
+			.archive-header__meta {
+				color: rgba(var(--gray-dark), 0.6);
+				font-size: 0.9rem;
+				margin-top: 0.5rem;
+			}
+			.archive-empty {
+				margin: 0;
+				color: rgba(var(--gray-dark), 0.7);
+			}
+			.archive-year {
+				margin-bottom: 3rem;
+			}
+			.archive-year:last-child {
+				margin-bottom: 0;
+			}
+			.archive-year__title {
+				font-size: 1.8rem;
+				font-weight: 600;
+				margin: 0 0 1.5rem 0;
+				color: rgb(var(--black));
+			}
+			.archive-month {
+				margin-bottom: 2rem;
+			}
+			.archive-month:last-child {
+				margin-bottom: 0;
+			}
+			.archive-month__header {
+				display: flex;
+				align-items: baseline;
+				gap: 0.5rem;
+				margin-bottom: 1rem;
+			}
+			.archive-month__name {
+				font-size: 1.2rem;
+				font-weight: 600;
+				color: rgb(var(--black));
+				margin: 0;
+			}
+			.archive-month__count {
+				color: rgba(var(--gray-dark), 0.6);
+				font-size: 0.9rem;
+			}
+			.archive-post-list {
 				list-style: none;
 				padding: 0;
 				margin: 0;
 				display: flex;
 				flex-direction: column;
-				gap: 1.8rem;
+				gap: 0.75rem;
 			}
-			.post-card {
-				border-bottom: 1px solid rgba(var(--gray-light), 0.9);
-				padding-bottom: 1.8rem;
+			.archive-post {
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
 			}
-			.post-card:last-child {
-				border-bottom: none;
-				padding-bottom: 0;
+			.archive-post__title {
+				margin: 0;
+				font-size: 1rem;
 			}
-			.post-card__meta {
-				color: rgba(var(--gray-dark), 0.6);
-				font-size: 0.9rem;
-				margin-bottom: 0.35rem;
-			}
-			.post-card__title {
-				margin: 0 0 0.5rem 0;
-				font-size: 1.5rem;
-			}
-			.post-card__title a {
+			.archive-post__title a {
 				text-decoration: none;
 				color: rgb(var(--black));
 			}
-			.post-card__title a:hover {
+			.archive-post__title a:hover {
 				color: rgb(var(--accent));
 			}
-			.post-card__summary {
-				margin: 0 0 0.75rem 0;
-				color: rgba(var(--gray-dark), 0.85);
-			}
-			.post-card__tags {
+			.archive-post__meta {
 				display: flex;
-				gap: 0.4rem;
-				flex-wrap: wrap;
-			}
-			.blog-empty {
-				margin: 0;
-				color: rgba(var(--gray-dark), 0.7);
-			}
-			.blog-header {
-				margin-bottom: 1.5rem;
-			}
-			.blog-header__meta {
+				align-items: center;
+				gap: 0.5rem;
 				color: rgba(var(--gray-dark), 0.6);
-				font-size: 0.9rem;
+				font-size: 0.85rem;
+			}
+			.archive-post__meta-separator {
+				color: rgba(var(--gray-dark), 0.4);
 			}
 		</style>
 	</head>
 	<body>
 		<SiteLayout>
 			<section class="page-panel">
-				<div class="blog-header">
+				<div class="archive-header">
 					<p class="eyebrow">Archive</p>
-					<h1>博客文章</h1>
-					<p class="blog-header__meta">
-						{activeTag ? `标签：${activeTag} · ` : ''}共 {posts.length} 篇
+					<h1>归档</h1>
+					<p class="archive-header__meta">
+						{activeTag ? `标签：${activeTag} · ` : ''}共 {totalPosts} 篇
 					</p>
 				</div>
 				{
-					posts.length === 0 ? (
-						<p class="blog-empty">没有找到对应标签的文章。</p>
+					totalPosts === 0 ? (
+						<p class="archive-empty">没有找到对应标签的文章。</p>
 					) : (
-						<ul class="post-list">
-							{
-								posts.map((post) => (
-									<li class="post-card">
-										<div class="post-card__meta">
-											<FormattedDate date={post.data.date} />
+						groupedByYearMonth.map((yearGroup) => (
+							<div class="archive-year">
+								<h2 class="archive-year__title">{yearGroup.year}</h2>
+								{
+									yearGroup.months.map((monthGroup) => (
+										<div class="archive-month">
+											<div class="archive-month__header">
+												<h3 class="archive-month__name">{monthGroup.monthName}</h3>
+												<span class="archive-month__count">{monthGroup.posts.length}</span>
+											</div>
+											<ul class="archive-post-list">
+												{
+													monthGroup.posts.map((post) => (
+														<li class="archive-post">
+															<h4 class="archive-post__title">
+																<a href={`/blog/${post.id}`}>{post.data.title}</a>
+															</h4>
+															<div class="archive-post__meta">
+																<FormattedDate date={post.data.date} />
+																<span class="archive-post__meta-separator">·</span>
+																<span>{post.readingTime} min</span>
+																<span class="archive-post__meta-separator">·</span>
+																<span>{post.wordCount} words</span>
+															</div>
+														</li>
+													))
+												}
+											</ul>
 										</div>
-										<h2 class="post-card__title">
-											<a href={`/blog/${post.id}`}>{post.data.title}</a>
-										</h2>
-										{
-											post.data.summary && (
-												<p class="post-card__summary">{post.data.summary}</p>
-											)
-										}
-										{
-											post.data.tags && post.data.tags.length > 0 && (
-												<div class="post-card__tags">
-													{
-														post.data.tags.map((tag) => (
-															<a href={`/blog?tag=${encodeURIComponent(tag)}`} class="tag-pill">
-																#{tag}
-															</a>
-														))
-													}
-												</div>
-											)
-										}
-									</li>
-								))
-							}
-						</ul>
+									))
+								}
+							</div>
+						))
 					)
 				}
 			</section>

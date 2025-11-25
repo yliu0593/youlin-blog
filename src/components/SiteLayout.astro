@@ -44,6 +44,12 @@ const hasAside = Astro.slots.has('aside');
 		align-self: flex-start;
 	}
 
+	:global(.site-shell__nav)::before,
+	.site-shell__nav::before {
+		content: none !important;
+		display: none !important;
+	}
+
 	.site-shell__content {
 		min-width: 0;
 	}

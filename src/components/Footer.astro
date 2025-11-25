@@ -3,7 +3,13 @@ const today = new Date();
 ---
 
 <footer>
-	&copy; {today.getFullYear()} yona. All rights reserved.
+	<p>&copy; {today.getFullYear()} yona. All rights reserved.</p>
+	<p class="footer-social">
+		阅读 · 观影 · 听歌：
+		<a href="https://neodb.social/users/huaer620/" target="_blank" rel="noopener noreferrer">
+			NeoDB
+		</a>
+	</p>
 </footer>
 <style>
 	footer {
@@ -11,5 +17,19 @@ const today = new Date();
 		background: linear-gradient(var(--gray-gradient)) no-repeat;
 		color: rgb(var(--gray));
 		text-align: center;
+	}
+
+	footer p {
+		margin: 0.35rem 0;
+	}
+
+	.footer-social a {
+		color: var(--accent);
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.footer-social a:hover {
+		text-decoration: underline;
 	}
 </style>

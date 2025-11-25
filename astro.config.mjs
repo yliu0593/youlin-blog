@@ -7,7 +7,7 @@ import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://example.com',
+	site: 'https://yona-blog.vercel.app',
 	output: 'server',
 	adapter: vercel(),
 	integrations: [mdx(), sitemap()],

@@ -1,0 +1,72 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+	posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+{posts.length > 0 && (
+	<section class="related-posts meta-card">
+		<h3>相关文章</h3>
+		<ul>
+			{
+				posts.map((item) => (
+					<li>
+						<a href={`/blog/${item.id}`}>{item.data.title}</a>
+						<span class="related-posts__date">
+							<FormattedDate date={item.data.date} />
+						</span>
+					</li>
+				))
+			}
+		</ul>
+	</section>
+)}
+
+<style>
+	.related-posts {
+		margin-top: 2.5rem;
+		padding: 1.5rem;
+	}
+
+	.related-posts h3 {
+		margin: 0 0 1rem 0;
+		font-size: 1.1rem;
+		color: rgb(var(--black));
+	}
+
+	.related-posts ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.8rem;
+	}
+
+	.related-posts li {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+
+	.related-posts a {
+		text-decoration: none;
+		font-weight: 600;
+		color: rgb(var(--black));
+	}
+
+	.related-posts a:hover {
+		color: rgb(var(--accent));
+	}
+
+	.related-posts__date {
+		font-size: 0.85rem;
+		color: rgba(var(--gray-dark), 0.65);
+	}
+</style>
+
