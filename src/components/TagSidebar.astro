@@ -7,13 +7,13 @@ interface Props {
 const { allTags, activeTag } = Astro.props;
 ---
 
-<aside class="tag-sidebar">
+<aside class="tag-sidebar meta-card">
 	<h3>标签</h3>
 	<ul class="tag-list">
 		<li>
 			<a
 				href="/blog"
-				class={activeTag === null ? 'active' : ''}
+				class:list={['tag-chip', { active: activeTag === null }]}
 			>
 				全部
 			</a>
@@ -21,10 +21,7 @@ const { allTags, activeTag } = Astro.props;
 		{
 			allTags.map((tag) => (
 				<li>
-					<a
-						href={`/blog?tag=${encodeURIComponent(tag)}`}
-						class={activeTag === tag ? 'active' : ''}
-					>
+					<a href={`/blog?tag=${encodeURIComponent(tag)}`} class:list={['tag-chip', { active: activeTag === tag }]}>
 						{tag}
 					</a>
 				</li>
@@ -34,43 +31,45 @@ const { allTags, activeTag } = Astro.props;
 </aside>
 
 <style>
-	.tag-sidebar {
-		width: 200px;
-		padding: 1em;
-	}
 	.tag-sidebar h3 {
 		margin: 0 0 1em 0;
-		font-size: 1em;
+		font-size: 1rem;
 		font-weight: 600;
+		color: rgb(var(--black));
 	}
 	.tag-list {
 		list-style: none;
 		padding: 0;
 		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
 	}
 	.tag-list li {
-		margin-bottom: 0.5em;
+		margin: 0;
 	}
 	.tag-list a {
-		display: block;
-		padding: 0.5em;
+		display: inline-block;
 		text-decoration: none;
+	}
+
+	.tag-chip {
+		padding: 0.35rem 0.75rem;
+		border-radius: 999px;
+		background: rgba(var(--accent), 0.08);
 		color: rgb(var(--gray-dark));
-		border-radius: 4px;
-		transition: background-color 0.2s;
+		font-size: 0.85rem;
+		transition: background-color 0.2s, color 0.2s;
 	}
-	.tag-list a:hover {
-		background-color: rgba(var(--accent), 0.1);
-	}
-	.tag-list a.active {
-		background-color: rgba(var(--accent), 0.2);
+
+	.tag-chip.active {
+		background: rgba(var(--accent), 0.16);
 		color: rgb(var(--accent));
 		font-weight: 600;
 	}
-	@media (max-width: 720px) {
-		.tag-sidebar {
-			display: none;
-		}
+
+	.tag-chip:hover {
+		background: rgba(var(--accent), 0.22);
 	}
 </style>
 

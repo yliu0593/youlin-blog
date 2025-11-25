@@ -1,0 +1,81 @@
+---
+import Header from './Header.astro';
+import Footer from './Footer.astro';
+
+const hasAside = Astro.slots.has('aside');
+---
+
+<div class:list={['site-shell', { 'site-shell--has-aside': hasAside }]}>
+	<aside class="site-shell__nav">
+		<Header />
+	</aside>
+	<main class="site-shell__content">
+		<slot />
+	</main>
+	{
+		hasAside && (
+			<aside class="site-shell__aside">
+				<slot name="aside" />
+			</aside>
+		)
+	}
+</div>
+<Footer />
+
+<style>
+	.site-shell {
+		min-height: calc(100vh - 80px);
+		display: grid;
+		grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr) minmax(200px, 1fr);
+		gap: clamp(1.5rem, 3vw, 3rem);
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: clamp(1.5rem, 3vw, 4rem) clamp(1rem, 5vw, 3.5rem) 2rem;
+		align-items: start;
+	}
+
+	.site-shell:not(.site-shell--has-aside) {
+		grid-template-columns: minmax(200px, 1fr) minmax(0, 3fr);
+	}
+
+	.site-shell__nav {
+		position: sticky;
+		top: 2rem;
+		align-self: flex-start;
+	}
+
+	.site-shell__content {
+		min-width: 0;
+	}
+
+	.site-shell__aside {
+		position: sticky;
+		top: 2rem;
+		align-self: flex-start;
+	}
+
+	@media (max-width: 1100px) {
+		.site-shell {
+			grid-template-columns: 1fr;
+			padding-top: 1rem;
+		}
+
+		.site-shell__nav {
+			position: relative;
+			top: 0;
+		}
+
+		.site-shell__content,
+		.site-shell__aside {
+			position: relative;
+			width: 100%;
+			top: 0;
+		}
+
+		.site-shell__aside {
+			margin-top: 1rem;
+		}
+	}
+</style>
+
+

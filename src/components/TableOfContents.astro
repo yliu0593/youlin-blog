@@ -16,7 +16,7 @@ if (headings.length === 0) {
 }
 ---
 
-<aside class="toc">
+<aside class="toc meta-card">
 	<nav>
 		<ul class="toc-list">
 			{
@@ -32,12 +32,8 @@ if (headings.length === 0) {
 
 <style>
 	.toc {
-		width: 200px;
-		padding: 0;
-		position: sticky;
-		top: 2em;
-		align-self: flex-start;
 		font-size: 0.85em;
+		padding: 1.25rem;
 	}
 	.toc-list {
 		list-style: none;
@@ -65,9 +61,6 @@ if (headings.length === 0) {
 	}
 	@media (max-width: 720px) {
 		.toc {
-			position: static;
-			width: 100%;
-			padding: 1em 0;
 			margin-bottom: 1em;
 		}
 	}
