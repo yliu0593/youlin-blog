@@ -1,24 +1,41 @@
-# build output
-dist/
-# generated types
-.astro/
-
-# dependencies
+# --- Node / package managers ---
 node_modules/
-
-# logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# --- Astro / build output ---
+dist/
+build/
+.out/
+.output/
+astro-out/
+.astro/
 
-# environment variables
+# --- Vercel build artifacts (never commit) ---
+.vercel/
+.vercel/output/
+.vercel/cache/
+.vercel/tmp/
+
+# --- Cursor / AI tools temp files ---
+cursor/
+.cursor/
+__cursor__/
+.cursorrules
+tmp/
+temp/
+
+# --- Env files ---
 .env
-.env.production
+.env.*
+!.env.example
 
-# macOS-specific files
-.DS_Store
-
-# jetbrains setting folder
+# --- Editors / OS junk ---
+.vscode/
 .idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
