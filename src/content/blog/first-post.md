@@ -19,6 +19,6 @@ summary: "给这个新的博客一个轻松的开场。"
 ## 建站第一天的待办事项
 
 1. `Home` 和 `Blog` 页面内容似乎是重叠的？可以直接去掉`Home`? 或者有空搞个Github那样“看看有几天写字了”的heatmap?
-2. TOC (table of contents) per blog page
+2. todo: TOC (table of contents) per blog page
 3. Site name seems to be still defaulting to "Astro Blog" 
 
