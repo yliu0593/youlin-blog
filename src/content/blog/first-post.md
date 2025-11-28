@@ -1,7 +1,7 @@
 ---
 title: "第一篇文章：重新开始写作"
 date: 2025-11-22
-tags: ["blah"]
+tags: ["journal"]
 summary: "给这个新的博客一个轻松的开场。"
 ---
 
