@@ -9,14 +9,39 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 export const prerender = false;
 
 const allPosts = await getCollection('blog');
-const activeTag = Astro.url.searchParams.get('tag');
+const searchParams = Astro.url.searchParams;
+
+const rawTags = [
+	...searchParams.getAll('tag'),
+	...searchParams.getAll('tags').flatMap((value) => value.split(',')),
+];
+const activeTags = Array.from(
+	new Set(
+		rawTags
+			.map((tag) => tag.trim())
+			.filter((tag) => tag.length > 0)
+	)
+);
+const activeTagSet = new Set(activeTags);
+const buildHomeHref = (tags: string[]) =>
+	tags.length > 0 ? `/?tags=${tags.map((tag) => encodeURIComponent(tag)).join(',')}` : '/';
+
+const toggleHomeTagHref = (tag: string) => {
+	const isActive = activeTagSet.has(tag);
+	const nextTags = isActive ? activeTags.filter((t) => t !== tag) : [...activeTags, tag];
+	const uniqueNext = Array.from(new Set(nextTags)).sort((a, b) => a.localeCompare(b));
+	return buildHomeHref(uniqueNext);
+};
 
 const allTags = Array.from(
 	new Set(allPosts.flatMap((post) => post.data.tags || []))
 ).sort();
 
-const posts = (activeTag
-	? allPosts.filter((post) => post.data.tags?.includes(activeTag))
+const posts = (activeTags.length > 0
+	? allPosts.filter((post) => {
+			const postTags = post.data.tags || [];
+			return activeTags.every((tag) => postTags.includes(tag));
+		})
 	: allPosts
 ).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 ---
@@ -87,7 +112,7 @@ const posts = (activeTag
 					<p class="eyebrow">Latest writing</p>
 					<h1>博客文章</h1>
 					<p class="blog-header__meta">
-						{activeTag ? `标签：${activeTag} · ` : ''}共 {posts.length} 篇
+						{activeTags.length > 0 ? `标签：${activeTags.join(' + ')} · ` : ''}共 {posts.length} 篇
 					</p>
 				</div>
 				{
@@ -114,7 +139,7 @@ const posts = (activeTag
 												<div class="post-card__tags">
 													{
 														post.data.tags.map((tag) => (
-															<a href={`/?tag=${encodeURIComponent(tag)}`} class="tag-pill">
+															<a href={toggleHomeTagHref(tag)} class="tag-pill">
 																#{tag}
 															</a>
 														))
@@ -129,7 +154,7 @@ const posts = (activeTag
 					)
 				}
 			</section>
-			<TagSidebar slot="aside" allTags={allTags} activeTag={activeTag} basePath="/" />
+			<TagSidebar slot="aside" allTags={allTags} activeTags={activeTags} basePath="/" />
 		</SiteLayout>
 	</body>
 </html>

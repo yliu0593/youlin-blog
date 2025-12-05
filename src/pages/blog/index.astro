@@ -12,15 +12,30 @@ import { join } from 'node:path';
 export const prerender = false;
 
 const allPosts = await getCollection('blog');
-const activeTag = Astro.url.searchParams.get('tag');
+const searchParams = Astro.url.searchParams;
+
+const rawTags = [
+	...searchParams.getAll('tag'),
+	...searchParams.getAll('tags').flatMap((value) => value.split(',')),
+];
+const activeTags = Array.from(
+	new Set(
+		rawTags
+			.map((tag) => tag.trim())
+			.filter((tag) => tag.length > 0)
+	)
+);
 
 const allTags = Array.from(
 	new Set(allPosts.flatMap((post) => post.data.tags || []))
 ).sort();
 
-// Filter posts by tag if active
-const filteredPosts = activeTag
-	? allPosts.filter((post) => post.data.tags?.includes(activeTag))
+// Filter posts by every active tag (AND logic)
+const filteredPosts = activeTags.length > 0
+	? allPosts.filter((post) => {
+			const postTags = post.data.tags || [];
+			return activeTags.every((tag) => postTags.includes(tag));
+		})
 	: allPosts;
 
 // Group posts by year and month
@@ -204,7 +219,7 @@ const totalPosts = postsWithStats.length;
 					<p class="eyebrow">Archive</p>
 					<h1>归档</h1>
 					<p class="archive-header__meta">
-						{activeTag ? `标签：${activeTag} · ` : ''}共 {totalPosts} 篇
+						{activeTags.length > 0 ? `标签：${activeTags.join(' + ')} · ` : ''}共 {totalPosts} 篇
 					</p>
 				</div>
 				{
@@ -247,7 +262,7 @@ const totalPosts = postsWithStats.length;
 					)
 				}
 			</section>
-			<TagSidebar slot="aside" allTags={allTags} activeTag={activeTag} />
+			<TagSidebar slot="aside" allTags={allTags} activeTags={activeTags} />
 		</SiteLayout>
 	</body>
 </html>

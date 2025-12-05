@@ -78,7 +78,7 @@ const relatedPosts = allPosts
 							<div class="post-tags">
 								{
 									post.data.tags.map((tag) => (
-										<a href={`/blog?tag=${encodeURIComponent(tag)}`} class="tag-pill">
+										<a href={`/blog?tags=${encodeURIComponent(tag)}`} class="tag-pill">
 											#{tag}
 										</a>
 									))

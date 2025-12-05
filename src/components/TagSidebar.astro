@@ -1,11 +1,25 @@
 ---
 interface Props {
 	allTags: string[];
-	activeTag: string | null;
+	activeTags?: string[];
 	basePath?: string;
 }
 
-const { allTags, activeTag, basePath = '/blog' } = Astro.props;
+const { allTags, activeTags = [], basePath = '/blog' } = Astro.props;
+const activeTagSet = new Set(activeTags);
+
+const buildHref = (tags: string[]) =>
+	tags.length > 0
+		? `${basePath}?tags=${tags.map((tag) => encodeURIComponent(tag)).join(',')}`
+		: basePath;
+
+const toggleHref = (tag: string) => {
+	const isActive = activeTagSet.has(tag);
+	const nextTags = isActive ? activeTags.filter((t) => t !== tag) : [...activeTags, tag];
+	// Keep query params stable for easier sharing/copying
+	const uniqueNext = Array.from(new Set(nextTags)).sort((a, b) => a.localeCompare(b));
+	return buildHref(uniqueNext);
+};
 ---
 
 <aside class="tag-sidebar meta-card">
@@ -13,8 +27,8 @@ const { allTags, activeTag, basePath = '/blog' } = Astro.props;
 	<ul class="tag-list">
 		<li>
 			<a
-				href={basePath}
-				class:list={['tag-chip', { active: activeTag === null }]}
+				href={buildHref([])}
+				class:list={['tag-chip', { active: activeTags.length === 0 }]}
 			>
 				全部
 			</a>
@@ -22,7 +36,11 @@ const { allTags, activeTag, basePath = '/blog' } = Astro.props;
 		{
 			allTags.map((tag) => (
 				<li>
-					<a href={`${basePath}?tag=${encodeURIComponent(tag)}`} class:list={['tag-chip', { active: activeTag === tag }]}>
+					<a
+						href={toggleHref(tag)}
+						class:list={['tag-chip', { active: activeTagSet.has(tag) }]}
+						aria-pressed={activeTagSet.has(tag) ? 'true' : 'false'}
+					>
 						{tag}
 					</a>
 				</li>
