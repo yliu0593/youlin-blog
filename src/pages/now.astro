@@ -1,6 +1,71 @@
 ---
+import { getCollection } from 'astro:content';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import BaseHead from '../components/BaseHead.astro';
+import BlogHeatmap from '../components/BlogHeatmap.astro';
 import SiteLayout from '../components/SiteLayout.astro';
+import { getWordCount } from '../utils/postStats';
+
+const allPosts = await getCollection('blog');
+
+// Compute 12-month window starting from first day of month 11 months ago
+const rangeEnd = new Date();
+rangeEnd.setHours(0, 0, 0, 0);
+const rangeStart = new Date(rangeEnd);
+rangeStart.setDate(1);
+rangeStart.setMonth(rangeStart.getMonth() - 11);
+
+type DayAggregate = {
+	totalWords: number;
+	longestWords: number;
+	longestSlug: string | null;
+};
+
+const dayMap = new Map<string, DayAggregate>();
+
+for (const post of allPosts) {
+	const postDate = post.data.date;
+	if (postDate < rangeStart || postDate > rangeEnd) continue;
+
+	// Read markdown/mdx body to compute word count
+	let body = '';
+	for (const ext of ['.md', '.mdx']) {
+		try {
+			const filePath = join(process.cwd(), 'src/content/blog', `${post.id}${ext}`);
+			body = await readFile(filePath, 'utf-8');
+			break;
+		} catch {
+			// try next extension
+		}
+	}
+
+	const wordCount = getWordCount(body);
+	const key = postDate.toISOString().slice(0, 10);
+	const existing = dayMap.get(key) ?? { totalWords: 0, longestWords: -1, longestSlug: null };
+	const totalWords = existing.totalWords + wordCount;
+	const longestSlug = wordCount > existing.longestWords ? `/blog/${post.id}` : existing.longestSlug;
+	const longestWords = Math.max(existing.longestWords, wordCount);
+
+	dayMap.set(key, { totalWords, longestWords, longestSlug });
+}
+
+const daySeries: { date: string; totalWords: number; slug: string | null }[] = [];
+for (let d = new Date(rangeStart); d <= rangeEnd; d.setDate(d.getDate() + 1)) {
+	const key = d.toISOString().slice(0, 10);
+	const aggregate = dayMap.get(key);
+	daySeries.push({
+		date: key,
+		totalWords: aggregate?.totalWords ?? 0,
+		slug: aggregate?.longestSlug ?? null,
+	});
+}
+
+const heatmapData = {
+	days: daySeries,
+	rangeStart: rangeStart.toISOString().slice(0, 10),
+	rangeEnd: rangeEnd.toISOString().slice(0, 10),
+};
 ---
 
 <!doctype html>
@@ -32,6 +97,7 @@ import SiteLayout from '../components/SiteLayout.astro';
 					<li>保持写作频率</li>
 				</ul>
 			</section>
+			<BlogHeatmap data={heatmapData} />
 			<div slot="aside" class="meta-card">
 				<p>回顾：</p>
 				<p>

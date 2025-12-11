@@ -1,0 +1,140 @@
+---
+interface DayPoint {
+	date: string;
+	totalWords: number;
+	slug: string | null;
+}
+
+interface Props {
+	data: {
+		days: DayPoint[];
+		rangeStart: string;
+		rangeEnd: string;
+	};
+}
+
+const { data }: Props = Astro.props;
+const hasActivity = data.days.some((d) => d.totalWords > 0);
+---
+
+<section class="meta-card heatmap-card">
+	<div class="heatmap-header">
+		<p class="eyebrow">Writing cadence</p>
+		<h2>Blog writing heatmap</h2>
+		<p class="subtext">最近12个月 · 深色 = 更多字数 · 点击当天打开最长文章</p>
+	</div>
+	<div id="blog-heatmap-chart" class="heatmap-chart" role="img" aria-label="博客写作热力图"></div>
+	{!hasActivity && <p class="empty">最近12个月暂无文章</p>}
+</section>
+
+<script id="heatmap-data" type="application/json" set:html={JSON.stringify(data)} />
+
+<style>
+	.heatmap-card {
+		margin-top: 1.5rem;
+	}
+	.heatmap-header h2 {
+		margin: 0 0 0.15rem 0;
+	}
+	.subtext {
+		margin: 0 0 0.5rem 0;
+		color: rgba(var(--gray-dark), 0.72);
+		font-size: 0.95rem;
+	}
+	.heatmap-chart {
+		width: 100%;
+		height: 280px;
+	}
+	.empty {
+		margin: 0.5rem 0 0;
+		color: rgba(var(--gray-dark), 0.7);
+	}
+	@media (max-width: 720px) {
+		.heatmap-chart {
+			height: 240px;
+		}
+	}
+</style>
+
+<script is:inline type="module">
+	const payload = JSON.parse(document.getElementById('heatmap-data').textContent);
+
+	const mount = async () => {
+		if (typeof window === 'undefined') return;
+
+		const container = document.getElementById('blog-heatmap-chart');
+		if (!container) return;
+
+		try {
+			const echarts = await import(
+				'https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.esm.min.js'
+			);
+
+			const { days, rangeStart, rangeEnd } = payload;
+			const seriesData = days.map((d) => ({ value: [d.date, d.totalWords], slug: d.slug }));
+			const maxValue = Math.max(1, ...seriesData.map((d) => d.value[1]));
+
+			const chart = echarts.init(container);
+			const option = {
+				tooltip: {
+					borderRadius: 8,
+					backgroundColor: '#fff',
+					borderColor: 'rgba(0,0,0,0.08)',
+					textStyle: { color: 'rgb(var(--gray-dark))' },
+					formatter: (params) => {
+						const [date, words] = params.value;
+						const lines = [`${date}`, `${Number(words).toLocaleString()} 字`];
+						return lines.join('<br/>');
+					},
+				},
+				visualMap: {
+					show: false,
+					min: 0,
+					max: maxValue,
+					inRange: {
+						color: ['#f1f5eb', '#dce7b5', '#b9cf6a', '#7da43a', '#4f7a1f'],
+					},
+				},
+				calendar: {
+					orient: 'horizontal',
+					cellSize: ['auto', 16],
+					range: [rangeStart, rangeEnd],
+					itemStyle: {
+						borderWidth: 1,
+						borderColor: 'rgba(0, 0, 0, 0.08)',
+					},
+					splitLine: { show: false },
+					yearLabel: { show: false },
+					dayLabel: { firstDay: 1, color: 'rgba(0, 0, 0, 0.48)' },
+					monthLabel: { color: 'rgba(0, 0, 0, 0.58)' },
+				},
+				series: [
+					{
+						type: 'heatmap',
+						coordinateSystem: 'calendar',
+						data: seriesData,
+					},
+				],
+			};
+
+			chart.setOption(option);
+
+			chart.on('click', (params) => {
+				const slug = params.data?.slug;
+				if (slug) {
+					window.location.href = slug;
+				}
+			});
+
+			window.addEventListener('resize', () => chart.resize());
+		} catch (err) {
+			console.error('Heatmap failed to load', err);
+			container.textContent = 'Heatmap failed to load';
+			container.style.color = 'rgba(0,0,0,0.55)';
+			container.style.padding = '0.5rem 0';
+		}
+	};
+
+	mount();
+</script>
+
