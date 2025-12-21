@@ -28,6 +28,12 @@ const relatedPosts = allPosts
 	.filter((entry) => entry.id !== post.id && entry.data.tags?.some((tag) => postTags.includes(tag)))
 	.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
 	.slice(0, 3);
+
+// Get previous and next posts (sorted by date, newest first)
+const sortedPosts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const currentIndex = sortedPosts.findIndex((p) => p.id === post.id);
+const newerPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
+const olderPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
 ---
 
 <!doctype html>
@@ -79,6 +85,58 @@ const relatedPosts = allPosts
 			.post-content :global(h3) {
 				scroll-margin-top: 1.5rem;
 			}
+			.post-nav {
+				display: flex;
+				justify-content: space-between;
+				gap: 1rem;
+				margin-top: 2.5rem;
+				padding-top: 2rem;
+				border-top: 1px solid rgba(var(--gray-light), 0.9);
+			}
+			.post-nav__link {
+				flex: 1;
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+				text-decoration: none;
+				padding: 0.75rem 1rem;
+				border-radius: 10px;
+				transition: background 0.15s ease;
+			}
+			.post-nav__link:hover {
+				background: rgba(var(--gray-light), 0.5);
+			}
+			.post-nav__link--next {
+				text-align: right;
+				align-items: flex-end;
+			}
+			.post-nav__label {
+				font-size: 0.8rem;
+				color: rgba(var(--gray-dark), 0.6);
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+			}
+			.post-nav__title {
+				font-weight: 600;
+				color: rgb(var(--black));
+				font-size: 0.95rem;
+				line-height: 1.4;
+			}
+			.post-nav__link:hover .post-nav__title {
+				color: var(--accent);
+			}
+			.post-nav__spacer {
+				flex: 1;
+			}
+			@media (max-width: 520px) {
+				.post-nav {
+					flex-direction: column;
+				}
+				.post-nav__link--next {
+					text-align: left;
+					align-items: flex-start;
+				}
+			}
 		</style>
 	</head>
 	<body>
@@ -107,6 +165,26 @@ const relatedPosts = allPosts
 				<div class="post-content">
 					<Content />
 				</div>
+				{(olderPost || newerPost) && (
+					<nav class="post-nav">
+						{olderPost ? (
+							<a href={`/blog/${olderPost.id}`} class="post-nav__link">
+								<span class="post-nav__label">← 上一篇</span>
+								<span class="post-nav__title">{olderPost.data.title}</span>
+							</a>
+						) : (
+							<div class="post-nav__spacer"></div>
+						)}
+						{newerPost ? (
+							<a href={`/blog/${newerPost.id}`} class="post-nav__link post-nav__link--next">
+								<span class="post-nav__label">下一篇 →</span>
+								<span class="post-nav__title">{newerPost.data.title}</span>
+							</a>
+						) : (
+							<div class="post-nav__spacer"></div>
+						)}
+					</nav>
+				)}
 			</article>
 			<RelatedPosts posts={relatedPosts} />
 			{hasToc && <TableOfContents slot="aside" headings={tocHeadings} />}
