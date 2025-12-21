@@ -84,6 +84,38 @@ const olderPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentInd
 			.post-content :global(h2),
 			.post-content :global(h3) {
 				scroll-margin-top: 1.5rem;
+				position: relative;
+			}
+			.post-content :global(.heading-anchor) {
+				position: absolute;
+				left: -1.5em;
+				top: 50%;
+				transform: translateY(-50%);
+				font-size: 0.7em;
+				color: rgba(var(--gray-dark), 0.3);
+				text-decoration: none;
+				opacity: 0;
+				transition: opacity 0.15s ease, color 0.15s ease;
+				padding-right: 0.5em;
+			}
+			.post-content :global(h2:hover .heading-anchor),
+			.post-content :global(h3:hover .heading-anchor),
+			.post-content :global(.heading-anchor:focus) {
+				opacity: 1;
+			}
+			.post-content :global(.heading-anchor:hover) {
+				color: var(--accent);
+			}
+			.post-content :global(.heading-anchor.copied) {
+				color: var(--accent);
+			}
+			@media (max-width: 720px) {
+				.post-content :global(.heading-anchor) {
+					position: static;
+					transform: none;
+					opacity: 0.5;
+					margin-right: 0.3em;
+				}
 			}
 			.post-nav {
 				display: flex;
@@ -191,6 +223,7 @@ const olderPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentInd
 		</SiteLayout>
 
 		<script>
+			// Reading progress bar
 			const progressBar = document.getElementById('reading-progress');
 
 			function updateProgress() {
@@ -205,6 +238,34 @@ const olderPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentInd
 			window.addEventListener('scroll', updateProgress, { passive: true });
 			window.addEventListener('resize', updateProgress, { passive: true });
 			updateProgress();
+
+			// Heading anchor links
+			const postContent = document.querySelector('.post-content');
+			if (postContent) {
+				const headings = postContent.querySelectorAll('h2[id], h3[id]');
+				headings.forEach((heading) => {
+					const anchor = document.createElement('a');
+					anchor.href = `#${heading.id}`;
+					anchor.className = 'heading-anchor';
+					anchor.textContent = '#';
+					anchor.setAttribute('aria-label', `Link to ${heading.textContent}`);
+					
+					anchor.addEventListener('click', async (e) => {
+						e.preventDefault();
+						const url = `${window.location.origin}${window.location.pathname}#${heading.id}`;
+						try {
+							await navigator.clipboard.writeText(url);
+							anchor.classList.add('copied');
+							setTimeout(() => anchor.classList.remove('copied'), 1500);
+						} catch {
+							// Fallback: just navigate to the anchor
+							window.location.hash = heading.id;
+						}
+					});
+					
+					heading.insertBefore(anchor, heading.firstChild);
+				});
+			}
 		</script>
 	</body>
 </html>
