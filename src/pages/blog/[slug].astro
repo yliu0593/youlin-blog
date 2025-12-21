@@ -35,6 +35,16 @@ const relatedPosts = allPosts
 	<head>
 		<BaseHead title={post.data.title} description={post.data.summary || ''} />
 		<style>
+			.reading-progress {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 0%;
+				height: 3px;
+				background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+				z-index: 1000;
+				transition: width 0.1s ease-out;
+			}
 			.post-panel {
 				padding: clamp(1.5rem, 3vw, 3rem);
 			}
@@ -72,6 +82,7 @@ const relatedPosts = allPosts
 		</style>
 	</head>
 	<body>
+		<div class="reading-progress" id="reading-progress"></div>
 		<SiteLayout>
 			<article class="page-panel post-panel">
 				<header class="post-header">
@@ -100,5 +111,22 @@ const relatedPosts = allPosts
 			<RelatedPosts posts={relatedPosts} />
 			{hasToc && <TableOfContents slot="aside" headings={tocHeadings} />}
 		</SiteLayout>
+
+		<script>
+			const progressBar = document.getElementById('reading-progress');
+
+			function updateProgress() {
+				const scrollTop = window.scrollY;
+				const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+				const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+				if (progressBar) {
+					progressBar.style.width = `${Math.min(100, Math.max(0, progress))}%`;
+				}
+			}
+
+			window.addEventListener('scroll', updateProgress, { passive: true });
+			window.addEventListener('resize', updateProgress, { passive: true });
+			updateProgress();
+		</script>
 	</body>
 </html>
