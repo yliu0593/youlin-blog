@@ -55,3 +55,21 @@ export function getReadingTime(wordCount: number): number {
 	return Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 }
 
+/**
+ * Extract the first image URL from markdown content
+ * Returns null if no image is found
+ */
+export function getFirstImage(content: string): string | null {
+	// Remove frontmatter first
+	const text = content.replace(/^---[\s\S]*?---\n/, '');
+
+	// Match markdown image syntax: ![alt](url)
+	const imageMatch = text.match(/!\[[^\]]*\]\(([^)]+)\)/);
+
+	if (imageMatch && imageMatch[1]) {
+		return imageMatch[1];
+	}
+
+	return null;
+}
+

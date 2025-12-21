@@ -5,6 +5,9 @@ import FormattedDate from '../components/FormattedDate.astro';
 import SiteLayout from '../components/SiteLayout.astro';
 import TagSidebar from '../components/TagSidebar.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+import { getFirstImage } from '../utils/postStats';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 export const prerender = false;
 
@@ -37,13 +40,33 @@ const allTags = Array.from(
 	new Set(allPosts.flatMap((post) => post.data.tags || []))
 ).sort();
 
-const posts = (activeTags.length > 0
+const filteredPosts = (activeTags.length > 0
 	? allPosts.filter((post) => {
 			const postTags = post.data.tags || [];
 			return activeTags.every((tag) => postTags.includes(tag));
 		})
 	: allPosts
 ).sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Extract first image from each post
+type PostWithImage = typeof filteredPosts[0] & { firstImage: string | null };
+
+const posts: PostWithImage[] = await Promise.all(
+	filteredPosts.map(async (post) => {
+		let body = '';
+		for (const ext of ['.md', '.mdx']) {
+			try {
+				const filePath = join(process.cwd(), 'src/content/blog', `${post.id}${ext}`);
+				body = await readFile(filePath, 'utf-8');
+				break;
+			} catch {
+				// Continue to next extension
+			}
+		}
+		const firstImage = getFirstImage(body);
+		return { ...post, firstImage };
+	})
+);
 ---
 
 <!doctype html>
@@ -66,6 +89,19 @@ const posts = (activeTags.length > 0
 			.post-card:last-child {
 				border-bottom: none;
 				padding-bottom: 0;
+			}
+			.post-card__thumbnail {
+				display: block;
+				width: 100%;
+				height: 180px;
+				border-radius: 10px;
+				overflow: hidden;
+				margin-bottom: 0.75rem;
+			}
+			.post-card__thumbnail img {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
 			}
 			.post-card__meta {
 				color: rgba(var(--gray-dark), 0.6);
@@ -123,6 +159,11 @@ const posts = (activeTags.length > 0
 							{
 								posts.map((post) => (
 									<li class="post-card">
+										{post.firstImage && (
+											<a href={`/blog/${post.id}`} class="post-card__thumbnail">
+												<img src={post.firstImage} alt="" loading="lazy" decoding="async" />
+											</a>
+										)}
 										<div class="post-card__meta">
 											<FormattedDate date={post.data.date} />
 										</div>
