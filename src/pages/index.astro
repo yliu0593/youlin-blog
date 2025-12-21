@@ -4,6 +4,7 @@ import BaseHead from '../components/BaseHead.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import SiteLayout from '../components/SiteLayout.astro';
 import TagSidebar from '../components/TagSidebar.astro';
+import Search from '../components/Search.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 import { getFirstImage } from '../utils/postStats';
 import { readFile } from 'node:fs/promises';
@@ -195,7 +196,10 @@ const posts: PostWithImage[] = await Promise.all(
 					)
 				}
 			</section>
-			<TagSidebar slot="aside" allTags={allTags} activeTags={activeTags} basePath="/" />
+			<Fragment slot="aside">
+				<Search />
+				<TagSidebar allTags={allTags} activeTags={activeTags} basePath="/" />
+			</Fragment>
 		</SiteLayout>
 	</body>
 </html>

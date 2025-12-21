@@ -4,6 +4,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import SiteLayout from '../../components/SiteLayout.astro';
 import TagSidebar from '../../components/TagSidebar.astro';
+import Search from '../../components/Search.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 import { getWordCount, getReadingTime } from '../../utils/postStats';
 import { readFile } from 'node:fs/promises';
@@ -262,7 +263,10 @@ const totalPosts = postsWithStats.length;
 					)
 				}
 			</section>
-			<TagSidebar slot="aside" allTags={allTags} activeTags={activeTags} />
+			<Fragment slot="aside">
+				<Search />
+				<TagSidebar allTags={allTags} activeTags={activeTags} />
+			</Fragment>
 		</SiteLayout>
 	</body>
 </html>

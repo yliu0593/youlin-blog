@@ -1,0 +1,188 @@
+---
+// Minimal Pagefind search component
+---
+
+<aside class="search-card meta-card" style="margin-bottom: 1rem;">
+	<h3>搜索</h3>
+	<div class="search-container">
+		<input
+			type="text"
+			id="search-input"
+			placeholder="搜索文章..."
+			autocomplete="off"
+		/>
+		<div id="search-results"></div>
+	</div>
+</aside>
+
+<style>
+	.search-card h3 {
+		margin: 0 0 0.75rem 0;
+		font-size: 1rem;
+		font-weight: 600;
+		color: rgb(var(--black));
+	}
+
+	.search-container {
+		position: relative;
+	}
+
+	#search-input {
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.85rem;
+		border: 1px solid rgba(var(--gray-light), 0.9);
+		border-radius: 8px;
+		background: rgba(var(--gray-light), 0.3);
+		color: rgb(var(--gray-dark));
+		font-family: inherit;
+		box-sizing: border-box;
+	}
+
+	#search-input:focus {
+		outline: none;
+		border-color: var(--accent);
+		background: #fff;
+	}
+
+	#search-results {
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		background: #fff;
+		border: 1px solid rgba(var(--gray-light), 0.9);
+		border-radius: 8px;
+		margin-top: 0.25rem;
+		max-height: 300px;
+		overflow-y: auto;
+		z-index: 100;
+		display: none;
+		box-shadow: 0 8px 24px rgba(var(--black), 0.1);
+	}
+
+	#search-results.has-results {
+		display: block;
+	}
+
+	#search-results :global(.search-result) {
+		display: block;
+		padding: 0.5rem 0.75rem;
+		text-decoration: none;
+		color: rgb(var(--gray-dark));
+		border-bottom: 1px solid rgba(var(--gray-light), 0.5);
+	}
+
+	#search-results :global(.search-result:last-child) {
+		border-bottom: none;
+	}
+
+	#search-results :global(.search-result:hover) {
+		background: rgba(var(--gray-light), 0.3);
+	}
+
+	#search-results :global(.search-result-title) {
+		font-weight: 600;
+		font-size: 0.85rem;
+		color: rgb(var(--black));
+	}
+
+	#search-results :global(.search-result-excerpt) {
+		font-size: 0.75rem;
+		color: rgba(var(--gray-dark), 0.7);
+		margin-top: 0.15rem;
+	}
+
+	#search-results :global(.search-result-excerpt mark) {
+		background: rgba(var(--accent), 0.2);
+		color: inherit;
+	}
+
+	#search-results :global(.search-no-results) {
+		padding: 0.5rem 0.75rem;
+		font-size: 0.85rem;
+		color: rgba(var(--gray-dark), 0.6);
+	}
+</style>
+
+<script is:inline>
+	(function() {
+		let pagefind = null;
+
+		async function initPagefind() {
+			if (pagefind) return pagefind;
+			try {
+				// Dynamic import at runtime to avoid Vite resolution
+				pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind.js');
+				await pagefind.init();
+				return pagefind;
+			} catch (e) {
+				console.log('Pagefind not available (run npm run build first)');
+				return null;
+			}
+		}
+
+		const input = document.getElementById('search-input');
+		const resultsContainer = document.getElementById('search-results');
+
+		if (input && resultsContainer) {
+			let debounceTimer;
+
+			input.addEventListener('input', function() {
+				clearTimeout(debounceTimer);
+				debounceTimer = setTimeout(async function() {
+					const query = input.value.trim();
+
+					if (!query) {
+						resultsContainer.innerHTML = '';
+						resultsContainer.classList.remove('has-results');
+						return;
+					}
+
+					const pf = await initPagefind();
+					if (!pf) {
+						resultsContainer.innerHTML = '<div class="search-no-results">搜索不可用</div>';
+						resultsContainer.classList.add('has-results');
+						return;
+					}
+
+					const search = await pf.search(query);
+
+					if (search.results.length === 0) {
+						resultsContainer.innerHTML = '<div class="search-no-results">没有找到结果</div>';
+						resultsContainer.classList.add('has-results');
+						return;
+					}
+
+					const results = await Promise.all(
+						search.results.slice(0, 5).map(function(r) { return r.data(); })
+					);
+
+					resultsContainer.innerHTML = results
+						.map(function(r) {
+							return '<a href="' + r.url + '" class="search-result">' +
+								'<div class="search-result-title">' + (r.meta?.title || r.url) + '</div>' +
+								'<div class="search-result-excerpt">' + (r.excerpt || '') + '</div>' +
+							'</a>';
+						})
+						.join('');
+					resultsContainer.classList.add('has-results');
+				}, 200);
+			});
+
+			// Close results when clicking outside
+			document.addEventListener('click', function(e) {
+				if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
+					resultsContainer.classList.remove('has-results');
+				}
+			});
+
+			// Reopen results when focusing input with content
+			input.addEventListener('focus', function() {
+				if (input.value.trim() && resultsContainer.innerHTML) {
+					resultsContainer.classList.add('has-results');
+				}
+			});
+		}
+	})();
+</script>
