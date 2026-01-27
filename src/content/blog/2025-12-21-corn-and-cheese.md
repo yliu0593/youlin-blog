@@ -26,3 +26,9 @@ https://www.instagram.com/reels/DQeQttnkUAx/
 3. 实际上大约10分钟后出现在焦色，取出来后直接当pancake吃了。挺粘牙的。
 
 **Verdict**：我很喜欢这个简单的概念，于是买了mozzarella cheese和al pastor准备再试一次。
+
+## 更新于2026-Jan: 当我买了mozzarella cheese之后
+
+结果还不如用cheddar cheese能成行呢！感觉收到了欺骗和愚弄 -- 一边试图把卷饼裹起来玉米粒一边哗啦啦的往下掉散开。加上粘牙的玉米，上次感受到的滤镜一下子全碎了，觉得不会再试了。
+
+补充一个con:撒cheese的时候需要专心，既要覆盖全部的玉米，又不能超过太多，所以这种“细心烹饪”模式（比如说烘培）大概率是不适合我的，我还是比较适合有容错率的菜。
