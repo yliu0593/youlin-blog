@@ -7,7 +7,7 @@ const md = new MarkdownIt();
 
 export async function GET(context) {
 	const posts = await getCollection('blog');
-	return rss({
+	const rssFeed = await rss({
 		title: SITE_TITLE,
 		description: SITE_DESCRIPTION,
 		site: context.site,
@@ -25,5 +25,11 @@ export async function GET(context) {
 				description: excerpt,
 			};
 		}),
+	});
+	const rssXml = await rssFeed.text();
+	return new Response(rssXml, {
+		headers: {
+			'Content-Type': 'application/rss+xml; charset=utf-8',
+		},
 	});
 }
