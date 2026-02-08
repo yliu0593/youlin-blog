@@ -11,6 +11,7 @@ export async function GET(context) {
 		title: SITE_TITLE,
 		description: SITE_DESCRIPTION,
 		site: context.site,
+		customData: '<language>zh-cn</language>',
 		items: posts.map((post) => {
 			const html = md.render(post.body ?? '');
 			const text = html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
