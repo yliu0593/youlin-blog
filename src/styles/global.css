@@ -83,6 +83,12 @@ p {
 .prose p {
 	margin-bottom: 2em;
 }
+.post-content strong,
+.post-content b,
+.post-content em,
+.post-content i {
+	color: #608a46;
+}
 textarea {
 	width: 100%;
 	font-size: 16px;
