@@ -187,6 +187,15 @@ const totalPosts = postsWithStats.length;
 			}
 			.archive-post {
 				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: flex-start;
+				gap: 1rem;
+			}
+			.archive-post__main {
+				flex: 1;
+				min-width: 0;
+				display: flex;
 				flex-direction: column;
 				gap: 0.25rem;
 			}
@@ -210,6 +219,24 @@ const totalPosts = postsWithStats.length;
 			}
 			.archive-post__meta-separator {
 				color: rgba(var(--gray-dark), 0.4);
+			}
+			.archive-post__tags {
+				flex-shrink: 0;
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.35rem;
+				justify-content: flex-end;
+			}
+			.archive-post__tags a {
+				text-decoration: none;
+				padding: 0.2rem 0.5rem;
+				border-radius: 999px;
+				background: rgba(var(--accent), 0.08);
+				color: rgb(var(--gray-dark));
+				font-size: 0.8rem;
+			}
+			.archive-post__tags a:hover {
+				background: rgba(var(--accent), 0.22);
 			}
 		</style>
 	</head>
@@ -241,16 +268,25 @@ const totalPosts = postsWithStats.length;
 												{
 													monthGroup.posts.map((post) => (
 														<li class="archive-post">
-															<h4 class="archive-post__title">
-																<a href={`/blog/${post.id}`}>{post.data.title}</a>
-															</h4>
-															<div class="archive-post__meta">
-																<FormattedDate date={post.data.date} />
-																<span class="archive-post__meta-separator">·</span>
-																<span>{post.readingTime} min</span>
-																<span class="archive-post__meta-separator">·</span>
-																<span>{post.wordCount} words</span>
+															<div class="archive-post__main">
+																<h4 class="archive-post__title">
+																	<a href={`/blog/${post.id}`}>{post.data.title}</a>
+																</h4>
+																<div class="archive-post__meta">
+																	<FormattedDate date={post.data.date} />
+																	<span class="archive-post__meta-separator">·</span>
+																	<span>{post.readingTime} min</span>
+																	<span class="archive-post__meta-separator">·</span>
+																	<span>{post.wordCount} words</span>
+																</div>
 															</div>
+															{post.data.tags && post.data.tags.length > 0 && (
+																<div class="archive-post__tags">
+																	{post.data.tags.map((tag) => (
+																		<a href={`/blog?tags=${encodeURIComponent(tag)}`}>{tag}</a>
+																	))}
+																</div>
+															)}
 														</li>
 													))
 												}
