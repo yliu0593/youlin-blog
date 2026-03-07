@@ -83,8 +83,14 @@ p {
 .prose p {
 	margin-bottom: 2em;
 }
+.prose strong,
+.prose b {
+	color: #32a8a8;
+}
 .post-content strong,
-.post-content b,
+.post-content b {
+	color: #32a8a8;
+}
 .post-content em,
 .post-content i {
 	color: #608a46;
@@ -121,6 +127,10 @@ blockquote {
 	padding: 0 0 0 20px;
 	margin: 0px;
 	font-size: 1em;
+}
+del {
+	color: #656970;
+	text-decoration-color: #656970;
 }
 hr {
 	border: none;
