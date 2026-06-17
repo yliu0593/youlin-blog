@@ -94,7 +94,7 @@ const posts: PostWithImage[] = await Promise.all(
 			.post-card__thumbnail {
 				display: block;
 				width: 100%;
-				height: 180px;
+				height: 216px;
 				border-radius: 10px;
 				overflow: hidden;
 				margin-bottom: 0.75rem;
@@ -102,7 +102,8 @@ const posts: PostWithImage[] = await Promise.all(
 			.post-card__thumbnail img {
 				width: 100%;
 				height: 100%;
-				object-fit: cover;
+				object-fit: contain;
+				object-position: center;
 			}
 			.post-card__meta {
 				color: rgba(var(--gray-dark), 0.6);
