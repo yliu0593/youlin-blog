@@ -1,3 +1,53 @@
+# Youlin Blog
+
+## Photo-first writing workflow
+
+Use `blog-inbox/` as the one-post-at-a-time draft space.
+
+1. Open `blog-inbox/draft.md` and write the post.
+2. Drop photos directly into `blog-inbox/`.
+3. Run:
+
+```sh
+npm run publish-draft
+```
+
+That command creates the correctly named post in `src/content/blog/`, copies photos into `public/images/`, and rewrites image links so the blog can publish them.
+
+The draft can be as simple as:
+
+```md
+# 四月和春天
+
+今天出去走了走。
+```
+
+If you mention a local image in the draft, the command rewrites it:
+
+```md
+![](photo.jpg)
+```
+
+If you do not mention the images, the command appends all photos in `blog-inbox/` to the end of the post in filename order.
+
+Optional frontmatter works when you want it:
+
+```md
+---
+title: "四月和春天"
+date: 2026-04-15
+tags: ["journal", "photos"]
+slug: april-and-spring
+summary: "四月的一些照片和小记"
+---
+
+正文从这里开始。
+```
+
+The command leaves `blog-inbox/draft.md` and the original photos untouched, so nothing disappears after publishing.
+
+---
+
 # Astro Starter Kit: Blog
 
 ```sh

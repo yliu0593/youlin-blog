@@ -6,7 +6,8 @@
     "dev": "astro dev",
     "build": "astro build && pagefind --site .vercel/output/static",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "publish-draft": "node scripts/publish-draft.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.12",
