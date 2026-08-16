@@ -1,0 +1,189 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import SiteLayout from '../components/SiteLayout.astro';
+import { getNeoDBFeed } from '../utils/neodb';
+
+export const prerender = false;
+
+const feed = await getNeoDBFeed();
+const title = '书影音';
+const description = 'yona 在 NeoDB 上标记的书、电影、剧集、播客和音乐。';
+const dateFormatter = new Intl.DateTimeFormat('zh-CN', {
+	year: 'numeric',
+	month: 'long',
+	day: 'numeric',
+});
+---
+
+<!doctype html>
+<html lang="zh">
+	<head>
+		<BaseHead title={`${title} | yona`} description={description} />
+		<style>
+			.neodb-header {
+				margin-bottom: 1.8rem;
+			}
+
+			.neodb-header h1 {
+				margin-bottom: 0.75rem;
+			}
+
+			.neodb-intro,
+			.neodb-meta,
+			.neodb-empty {
+				color: rgba(var(--gray-dark), 0.72);
+			}
+
+			.neodb-intro {
+				margin: 0;
+			}
+
+			.neodb-source a {
+				text-decoration: none;
+				font-weight: 700;
+			}
+
+			.neodb-list {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.9rem;
+			}
+
+			.neodb-item {
+				padding: 1rem 0 1.1rem;
+				border-top: 1px solid rgba(var(--gray-light), 0.9);
+			}
+
+			.neodb-item:first-child {
+				border-top: none;
+				padding-top: 0;
+			}
+
+			.neodb-item__topline {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.45rem;
+				align-items: center;
+				margin-bottom: 0.45rem;
+				font-size: 0.82rem;
+				color: rgba(var(--gray-dark), 0.62);
+			}
+
+			.neodb-badge {
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				min-width: 2.1rem;
+				border-radius: 999px;
+				padding: 0.12rem 0.55rem;
+				background: rgba(50, 168, 168, 0.12);
+				color: #237b7b;
+				font-weight: 700;
+			}
+
+			.neodb-action {
+				color: rgba(var(--gray-dark), 0.76);
+				font-weight: 700;
+			}
+
+			.neodb-item__title {
+				margin: 0 0 0.35rem;
+				font-size: 1.35rem;
+			}
+
+			.neodb-item__title a {
+				color: rgb(var(--black));
+				text-decoration: none;
+			}
+
+			.neodb-item__title a:hover {
+				color: rgb(var(--accent));
+			}
+
+			.neodb-item__description {
+				font-size: 0.95rem;
+				color: rgba(var(--gray-dark), 0.85);
+			}
+
+			.neodb-item__description :global(p) {
+				margin: 0.35rem 0 0;
+			}
+
+			.neodb-item__description :global(a) {
+				font-weight: 700;
+				text-decoration: none;
+			}
+
+			.neodb-source {
+				margin-top: 1.5rem;
+				padding-top: 1.2rem;
+				border-top: 1px solid rgba(var(--gray-light), 0.9);
+				font-size: 0.9rem;
+				color: rgba(var(--gray-dark), 0.65);
+			}
+
+			.neodb-error {
+				border: 1px solid rgba(150, 90, 40, 0.2);
+				background: rgba(150, 90, 40, 0.08);
+				border-radius: 12px;
+				padding: 0.85rem 1rem;
+				color: rgba(var(--gray-dark), 0.78);
+			}
+
+			@media (max-width: 720px) {
+				.neodb-item__title {
+					font-size: 1.2rem;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<SiteLayout>
+			<section class="page-panel">
+				<div class="neodb-header">
+					<p class="eyebrow">NeoDB</p>
+					<h1>{title}</h1>
+					<p class="neodb-intro">{description}</p>
+				</div>
+
+				{
+					feed.error ? (
+						<p class="neodb-error">
+							暂时没有从 NeoDB 取到动态：{feed.error}。可以稍后再回来看看。
+						</p>
+					) : feed.items.length === 0 ? (
+						<p class="neodb-empty">NeoDB 还没有公开动态。</p>
+					) : (
+						<ul class="neodb-list">
+							{feed.items.map((item) => (
+								<li class="neodb-item">
+									<div class="neodb-item__topline">
+										<span class="neodb-badge">{item.category}</span>
+										<span class="neodb-action">{item.action}</span>
+										<time datetime={item.publishedAt.toISOString()}>
+											{dateFormatter.format(item.publishedAt)}
+										</time>
+									</div>
+									<h2 class="neodb-item__title">
+										<a href={item.link} target="_blank" rel="noopener noreferrer">
+											{item.workTitle || item.title}
+										</a>
+									</h2>
+									<div class="neodb-item__description" set:html={item.description} />
+								</li>
+							))}
+						</ul>
+					)
+				}
+
+				<p class="neodb-source">
+					{feed.lastBuildDate ? `最近同步：${dateFormatter.format(feed.lastBuildDate)} · ` : ''}
+					内容来自 <a href={feed.sourceUrl} target="_blank" rel="noopener noreferrer">NeoDB RSS</a>。
+				</p>
+			</section>
+		</SiteLayout>
+	</body>
+</html>
